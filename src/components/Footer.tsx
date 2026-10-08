@@ -1,47 +1,26 @@
 export default function Footer() {
   return (
-    <footer className="mt-20 bg-slate-950 text-white">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-10 md:grid-cols-3">
+    <footer className="mt-20 border-t border-slate-200 bg-slate-950 text-white">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div>
-            <div className="flex items-center gap-3">
-              <span className="text-3xl">🛒</span>
+            <h2 className="text-xl font-black">
+              বাজার দর
+            </h2>
 
-              <span className="text-2xl font-black">
-                বাজার দর
-              </span>
-            </div>
-
-            <p className="mt-4 max-w-sm text-sm leading-7 text-slate-400">
-              বাংলাদেশের দৈনিক বাজারদর সহজে দেখুন।
-              সঠিক তথ্যের মাধ্যমে আপনার দৈনন্দিন বাজার
-              আরও সহজ হোক।
+            <p className="mt-2 text-sm text-slate-400">
+              বাজার দর — প্রয়োজনীয় পণ্যের দাম এক নজরে।
             </p>
           </div>
 
-          <div>
-            <h3 className="font-bold">দ্রুত লিংক</h3>
-
-            <div className="mt-4 flex flex-col gap-3 text-sm text-slate-400">
-              <a href="/">হোম</a>
-              <a href="/category/chal">চাল</a>
-              <a href="/category/dal">ডাল</a>
-              <a href="/category/sobji">সবজি</a>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="font-bold">বাজার দর</h3>
-
-            <p className="mt-4 text-sm leading-7 text-slate-400">
-              প্রতিদিনের প্রয়োজনীয় পণ্যের বাজারমূল্য
-              এক জায়গায়।
-            </p>
-          </div>
+          <p className="max-w-xl text-sm leading-7 text-slate-400 md:text-right">
+            সকল দাম সম্ভাব্য; বাজার অবস্থার ওপর নির্ভর করে
+            পরিবর্তিত হয়।
+          </p>
         </div>
 
-        <div className="mt-10 border-t border-slate-800 pt-6 text-center text-sm text-slate-500">
-         © ২০২৬ বাজার দর. All rights reserved.
+        <div className="mt-8 border-t border-slate-800 pt-6 text-center text-xs text-slate-500">
+          © ২০২৬ বাজার দর. All rights reserved.
         </div>
       </div>
     </footer>
