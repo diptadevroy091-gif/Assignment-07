@@ -1,24 +1,19 @@
 export default function Loading() {
   return (
-    <main className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="h-80 animate-pulse rounded-4xl bg-slate-200" />
+    <div className="wrap loading-page">
+      <div className="skeleton skeleton-title" />
+      <div className="skeleton skeleton-text" />
 
-        <div className="mt-12">
-          <div className="h-10 w-64 animate-pulse rounded bg-slate-200" />
-
-          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map(
-              (_, index) => (
-                <div
-                  key={index}
-                  className="h-72 animate-pulse rounded-3xl bg-white"
-                />
-              )
-            )}
+      <div className="product-grid">
+        {Array.from({ length: 8 }).map((_, index) => (
+          <div className="skeleton-card" key={index}>
+            <div className="skeleton skeleton-image" />
+            <div className="skeleton skeleton-text" />
+            <div className="skeleton skeleton-text short" />
+            <div className="skeleton skeleton-price" />
           </div>
-        </div>
+        ))}
       </div>
-    </main>
+    </div>
   );
 }

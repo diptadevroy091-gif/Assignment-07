@@ -1,103 +1,88 @@
-"use client";
 
-import type { Product } from "@/types/product";
-import {
-  ArrowDown,
-  ArrowUp,
-  Minus,
-} from "lucide-react";
+import type { Product } from "../types/product";
 
-type Props = {
-  products: Product[];
+type PriceTickerProps = {
+  products: PriceTickerProduct[];
 };
 
-const toBanglaNumber = (value: number | string) => {
-  const digits = [
-    "০",
-    "১",
-    "২",
-    "৩",
-    "৪",
-    "৫",
-    "৬",
-    "৭",
-    "৮",
-    "৯",
-  ];
-
-  return String(value)
-    .replace(/\d/g, (digit) => digits[Number(digit)])
-    .replace(".", "দশমিক");
+type PriceTickerProduct = Product & {
+  change?: number | string;
 };
 
-const formatPrice = (value: number) => {
+function formatPrice(value: number | string | undefined): string {
+  const numericValue = Number(value ?? 0);
+
   return new Intl.NumberFormat("bn-BD", {
     maximumFractionDigits: 2,
-  }).format(Number(value) || 0);
-};
+  }).format(Number.isFinite(numericValue) ? numericValue : 0);
+}
+
+function getChangeMeta(change: number | string | undefined): {
+  symbol: string;
+  className: string;
+} {
+  const numericChange = Number(change ?? 0);
+
+  if (!Number.isFinite(numericChange)) {
+    return { symbol: "—", className: "text-slate-300" };
+  }
+
+  if (numericChange > 0) {
+    return { symbol: "▲", className: "text-rose-300" };
+  }
+
+  if (numericChange < 0) {
+    return { symbol: "▼", className: "text-lime-300" };
+  }
+
+  return { symbol: "—", className: "text-slate-300" };
+}
 
 export default function PriceTicker({
   products,
-}: Props) {
-  const items = products.slice(0, 12);
-
-  if (!items.length) {
-    return null;
+}: PriceTickerProps) {
+  if (products.length === 0) {
+    return (
+      <div className="border-b border-emerald-900 bg-emerald-950 px-4 py-3 text-center text-sm text-emerald-100">
+        আজকের বাজারদরের তথ্য লোড হচ্ছে...
+      </div>
+    );
   }
 
-  const tickerItems = [...items, ...items];
+  const items = [...products, ...products];
 
   return (
-    <div className="sticky top-0 z-40 overflow-hidden border-b border-slate-200 bg-white shadow-sm">
-      <div className="ticker-track flex min-w-max">
-        {tickerItems.map((product, index) => {
-          const isUp = product.change > 0;
-          const isDown = product.change < 0;
+    <div className="overflow-hidden border-b border-emerald-900 bg-emerald-950 text-white">
+      <div className="flex min-h-12 items-center gap-5 px-4">
+        <span className="z-10 shrink-0 rounded-md bg-lime-300 px-2.5 py-1 text-xs font-black text-emerald-950">
+          বাজার আপডেট
+        </span>
 
-          const percent = Math.abs(
-            Number(product.changePercent ?? 0)
-          );
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <div className="flex w-max animate-[ticker_35s_linear_infinite] items-center gap-8 hover:[animation-play-state:paused]">
+            {items.map((product, index) => {
+              const changeMeta = getChangeMeta(product.change);
 
-          return (
-            <div
-              key={`${product.id}-${index}`}
-              className="flex shrink-0 items-center gap-2 border-r border-slate-200 px-5 py-2.5 text-sm"
-            >
-              <span className="text-lg">
-                {product.emoji}
-              </span>
+              return (
+                <span
+                  key={`${product.id}-${index}`}
+                  className="flex shrink-0 items-center gap-2 text-sm"
+                >
+                  <span>{product.emoji}</span>
+                  <span className="font-semibold">{product.name}</span>
 
-              <span className="font-bold text-slate-700">
-                {product.name}
-              </span>
+                  <span className="font-bold text-lime-300">
+                    ৳{formatPrice(product.price)}
+                  </span>
 
-              <span className="font-black text-slate-900">
-                ৳{formatPrice(product.price)}
-              </span>
+                  <span className="text-emerald-200">/ {product.unit}</span>
 
-              <span className="text-xs text-slate-400">
-                / {product.unit}
-              </span>
-
-              {isUp ? (
-                <span className="inline-flex items-center gap-1 font-bold text-emerald-600">
-                  <ArrowUp size={14} />
-                  {toBanglaNumber(percent)}%
+                  <span className={changeMeta.className}>{changeMeta.symbol}</span>
                 </span>
-              ) : isDown ? (
-                <span className="inline-flex items-center gap-1 font-bold text-red-600">
-                  <ArrowDown size={14} />
-                  {toBanglaNumber(percent)}%
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 font-bold text-slate-400">
-                  <Minus size={14} />
-                  ০%
-                </span>
-              )}
-            </div>
-          );
-        })}
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

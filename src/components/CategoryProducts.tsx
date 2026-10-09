@@ -1,81 +1,64 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Product } from "@/types/product";
-import ProductGrid from "./ProductGrid";
-import { ChevronDown } from "lucide-react";
+import { ArrowDownAZ, ArrowUpAZ, SlidersHorizontal } from "lucide-react";
 
-type Props = {
-  products: Product[];
-};
+import type { Product } from "@/lib/products";
+import ProductGrid from "@/components/ProductGrid";
+
+type SortOption = "default" | "low-high" | "high-low";
 
 export default function CategoryProducts({
   products,
-}: Props) {
-  const [sort, setSort] = useState("default");
+}: {
+  products: Product[];
+}) {
+  const [sort, setSort] = useState<SortOption>("default");
 
   const sortedProducts = useMemo(() => {
-    const result = [...products];
+    const list = [...products];
 
-    if (sort === "asc") {
-      result.sort(
-        (a, b) =>
-          Number(a.price) - Number(b.price)
-      );
+    if (sort === "low-high") {
+      list.sort((a, b) => a.price - b.price);
+    } else if (sort === "high-low") {
+      list.sort((a, b) => b.price - a.price);
     }
 
-    if (sort === "desc") {
-      result.sort(
-        (a, b) =>
-          Number(b.price) - Number(a.price)
-      );
-    }
-
-    return result;
+    return list;
   }, [products, sort]);
 
   return (
-    <div>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-slate-500">
-          মোট {products.length}টি পণ্য পাওয়া গেছে
+    <>
+      <div className="category-toolbar">
+        <p>
+          মোট <strong>{products.length.toLocaleString("bn-BD")}</strong> টি পণ্য
         </p>
 
-        <div className="relative">
-          <label className="mr-2 text-sm font-semibold text-slate-600">
-            সাজান:
-          </label>
+        <label className="sort-control">
+          <SlidersHorizontal size={16} />
+          <span>সাজান:</span>
 
-          <div className="relative inline-block">
-            <select
-              value={sort}
-              onChange={(event) =>
-                setSort(event.target.value)
-              }
-              className="appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-4 pr-10 text-sm font-semibold text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-            >
-              <option value="default">
-                ডিফল্ট
-              </option>
+          <select
+            value={sort}
+            onChange={(event) =>
+              setSort(event.target.value as SortOption)
+            }
+            aria-label="পণ্য সাজান"
+          >
+            <option value="default">ডিফল্ট</option>
+            <option value="low-high">দাম: কম থেকে বেশি</option>
+            <option value="high-low">দাম: বেশি থেকে কম</option>
+          </select>
 
-              <option value="asc">
-                দাম: কম থেকে বেশি
-              </option>
-
-              <option value="desc">
-                দাম: বেশি থেকে কম
-              </option>
-            </select>
-
-            <ChevronDown
-              size={17}
-              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"
-            />
-          </div>
-        </div>
+          {sort === "low-high" ? (
+            <ArrowUpAZ size={16} />
+          ) : (
+            <ArrowDownAZ size={16} />
+          )}
+        </label>
       </div>
 
       <ProductGrid products={sortedProducts} />
-    </div>
+    </>
   );
 }

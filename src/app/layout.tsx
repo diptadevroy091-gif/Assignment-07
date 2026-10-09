@@ -1,47 +1,27 @@
 import type { Metadata } from "next";
 import "./globals.css";
-
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import PriceTicker from "@/components/PriceTicker";
-import { getProducts } from "@/lib/api";
-import { Toaster } from "react-hot-toast";
+import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
-  title: "বাজার দর | আজকের বাজার মূল্য",
+  title: "বাজার দর | আজকের বাজারদর",
   description:
-    "বাংলাদেশের দৈনিক বাজার দর দেখুন। প্রয়োজনীয় পণ্যের আজকের দাম এক নজরে।",
+    "বাংলাদেশের নিত্যপ্রয়োজনীয় পণ্যের আজকের বাজারদর এক নজরে দেখুন।",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const products = await getProducts();
-
   return (
-    <html lang="bn" data-scroll-behavior="smooth">
-      <body className="bg-slate-50 text-slate-900 antialiased">
+    <html lang="bn">
+      <body>
+        <Providers />
         <Navbar />
-
-        {/* Price ticker must stay directly below Navbar */}
-        <PriceTicker products={products} />
-
-        {children}
-
+        <main>{children}</main>
         <Footer />
-
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              borderRadius: "14px",
-              fontFamily: "inherit",
-            },
-          }}
-        />
       </body>
     </html>
   );

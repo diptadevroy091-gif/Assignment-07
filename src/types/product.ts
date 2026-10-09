@@ -1,39 +1,31 @@
-export type Product = {
-  id: string;
-  name: string;
-  slug: string;
+export interface MarketPrice {
+market?: string;
+marketName?: string;
+name?: string;
+price?: number | string;
+location?: string;
+updatedAt?: string;
+}
 
-  category: string;
-  categoryName?: string;
-  categoryIcon?: string;
-
-  description?: string;
-  unit: string;
-
-  price: number;
-  minPrice?: number;
-  maxPrice?: number;
-  averagePrice?: number;
-
-  change: number;
-  changePercent?: number;
-
-  emoji: string;
-
-  bazarPrices?: BazarPrice[];
-
-  raw?: unknown;
-};
-
-export type BazarPrice = {
-  bazar: string;
-  price: number;
-  unit?: string;
-};
-
-export type Category = {
-  id: string;
-  name: string;
-  slug: string;
-  icon: string;
-};
+export interface Product {
+id: string | number;
+name: string;
+slug?: string;
+category?: string;
+categoryName?: string;
+image?: string;
+imageUrl?: string;
+emoji?: string;
+price?: number | string;
+unit?: string;
+description?: string;
+minPrice?: number | string;
+maxPrice?: number | string;
+averagePrice?: number | string;
+previousPrice?: number | string;
+priceChange?: number | string;
+trend?: string;
+markets?: MarketPrice[];
+createdAt?: string;
+updatedAt?: string;
+}

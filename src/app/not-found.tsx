@@ -1,30 +1,26 @@
 import Link from "next/link";
+import { Home, SearchX } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-[70vh] items-center justify-center bg-slate-50 px-4">
-      <div className="text-center">
-        <div className="text-8xl">🛒</div>
-
-        <h1 className="mt-5 text-6xl font-black text-slate-900">
-          404
-        </h1>
-
-        <h2 className="mt-3 text-2xl font-black">
-          পেজটি পাওয়া যায়নি
-        </h2>
-
-        <p className="mt-2 text-slate-500">
-          আপনি যে পেজ বা পণ্যটি খুঁজছেন সেটি নেই।
-        </p>
-
-        <Link
-          href="/"
-          className="mt-7 inline-flex rounded-xl bg-emerald-600 px-6 py-3 font-bold text-white hover:bg-emerald-700"
-        >
-          হোমে ফিরে যান
-        </Link>
+    <section className="not-found wrap">
+      <div className="not-found-icon">
+        <SearchX size={46} />
       </div>
-    </main>
+
+      <span className="section-kicker">404 — পৃষ্ঠা পাওয়া যায়নি</span>
+
+      <h1>ওহ! এই পৃষ্ঠাটি খুঁজে পাওয়া যায়নি।</h1>
+
+      <p>
+        লিংকটি ভুল হতে পারে অথবা পৃষ্ঠাটি সরানো হয়েছে।
+        হোম পেজ থেকে আবার খুঁজে দেখুন।
+      </p>
+
+      <Link href="/" className="btn btn-primary">
+        <Home size={18} />
+        হোম পেজে ফিরে যান
+      </Link>
+    </section>
   );
 }
