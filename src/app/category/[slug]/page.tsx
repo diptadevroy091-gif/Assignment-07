@@ -24,11 +24,17 @@ const known: Record<
     emoji: "🫘",
     aliases: ["lentil", "dal", "ডাল"],
   },
-  shobji: {
-    name: "সবজি",
-    emoji: "🥬",
-    aliases: ["vegetable", "সবজি", "shobji"],
-  },
+  sobji: {
+  name: "সবজি",
+  emoji: "🥬",
+  aliases: [
+    "sobji",
+    "shobji",
+    "vegetable",
+    "vegetables",
+    "সবজি",
+  ],
+},
   mach: {
     name: "মাছ",
     emoji: "🐟",
