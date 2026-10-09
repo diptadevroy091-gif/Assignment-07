@@ -1,13 +1,56 @@
+
 "use client";
 
-import { FormEvent, useState } from "react";
+import { Suspense, useState } from "react";
+import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
 import toast from "react-hot-toast";
 import { LockKeyhole } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
+
+function GoogleLogo() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 48 48"
+      aria-hidden="true"
+    >
+      <path
+        fill="#EA4335"
+        d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"
+      />
+      <path
+        fill="#4285F4"
+        d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 37.95 46.98 31.8 46.98 24.55Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M10.53 28.59a14.4 14.4 0 0 1 0-9.18l-7.98-6.19a24 24 0 0 0 0 21.56l7.98-6.19Z"
+      />
+      <path
+        fill="#34A853"
+        d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.44-4.89 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z"
+      />
+    </svg>
+  );
+}
+
+function GitHubLogo() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.55.1.76-.24.76-.53v-2.08c-3.1.67-3.76-1.32-3.76-1.32-.5-1.29-1.23-1.63-1.23-1.63-1.01-.69.08-.68.08-.68 1.12.08 1.71 1.15 1.71 1.15 1 1.71 2.62 1.22 3.26.93.1-.72.39-1.22.71-1.5-2.47-.28-5.06-1.24-5.06-5.51 0-1.22.44-2.21 1.15-2.99-.12-.28-.5-1.42.11-2.95 0 0 .94-.3 3.05 1.14a10.6 10.6 0 0 1 5.55 0c2.11-1.44 3.04-1.14 3.04-1.14.61 1.53.23 2.67.11 2.95.72.78 1.15 1.77 1.15 2.99 0 4.28-2.59 5.22-5.07 5.5.4.35.75 1.02.75 2.06V22c0 .29.2.63.77.53A11.1 11.1 0 0 0 12 .9Z" />
+    </svg>
+  );
+}
 
 function SignInForm() {
   const router = useRouter();
@@ -16,6 +59,9 @@ function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<
+    "google" | "github" | null
+  >(null);
   const [error, setError] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -64,6 +110,9 @@ function SignInForm() {
   }
 
   async function handleSocial(provider: "google" | "github") {
+    setError("");
+    setSocialLoading(provider);
+
     try {
       const result = await authClient.signIn.social({
         provider,
@@ -71,14 +120,19 @@ function SignInForm() {
       });
 
       if (result.error) {
-        toast.error(
-          result.error.message || "Social login ব্যর্থ হয়েছে।"
-        );
+        const message =
+          result.error.message || "Social login ব্যর্থ হয়েছে.";
+
+        setError(message);
+        toast.error(message);
+        setSocialLoading(null);
       }
     } catch {
-      toast.error(
-        "Social login-এর credentials configure করা আছে কি না পরীক্ষা করুন।"
+      setError(
+        "Social login কাজ করছে না। Provider credentials ও configuration পরীক্ষা করুন।"
       );
+      toast.error("Social login-এর configuration পরীক্ষা করুন।");
+      setSocialLoading(null);
     }
   }
 
@@ -116,12 +170,16 @@ function SignInForm() {
             />
           </div>
 
-          {error && <p className="form-error">{error}</p>}
+          {error && (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          )}
 
           <button
             className="btn btn-primary"
             type="submit"
-            disabled={loading}
+            disabled={loading || socialLoading !== null}
           >
             <LockKeyhole size={17} />
             {loading ? "সাইন ইন হচ্ছে..." : "সাইন ইন"}
@@ -135,16 +193,24 @@ function SignInForm() {
             type="button"
             className="btn btn-light"
             onClick={() => handleSocial("google")}
+            disabled={loading || socialLoading !== null}
           >
-            Google
+            <GoogleLogo />
+            {socialLoading === "google"
+              ? "Google-এ সংযোগ হচ্ছে..."
+              : "Google দিয়ে চালিয়ে যান"}
           </button>
 
           <button
             type="button"
             className="btn btn-light"
             onClick={() => handleSocial("github")}
+            disabled={loading || socialLoading !== null}
           >
-            GitHub
+            <GitHubLogo />
+            {socialLoading === "github"
+              ? "GitHub-এ সংযোগ হচ্ছে..."
+              : "GitHub দিয়ে চালিয়ে যান"}
           </button>
         </div>
 

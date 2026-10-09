@@ -3213,3 +3213,52 @@ img {
   text-align: center;
   margin: 0 auto 10px;
 }
+
+.social-buttons {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.social-buttons .btn-light {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  color: #222;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.social-buttons .btn-light:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+.social-buttons .btn-light:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.social-buttons .btn-light svg {
+  flex-shrink: 0;
+}
+
+@media (min-width: 480px) {
+  .social-buttons {
+    grid-template-columns: 1fr;
+  }
+}
