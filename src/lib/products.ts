@@ -1,6 +1,7 @@
+
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://api.api-store.workers.dev/api/bazardor";
+  "https://openapi.programming-hero.com/api/bazardor";
 
 export type MarketPrice = {
   market: string;
@@ -48,10 +49,7 @@ function asRecord(value: unknown): ApiRecord {
   return {};
 }
 
-function toString(
-  value: unknown,
-  fallback = ""
-): string {
+function toString(value: unknown, fallback = ""): string {
   if (typeof value === "string" || typeof value === "number") {
     return String(value);
   }
@@ -76,7 +74,7 @@ export function toNumber(
 
     const result = Number(normalized);
 
-    return Number.isFinite(result) && normalized !== ""
+    return normalized !== "" && Number.isFinite(result)
       ? result
       : fallback;
   }
@@ -88,57 +86,126 @@ export function bnNumber(value: number): string {
   return Math.round(value).toLocaleString("bn-BD");
 }
 
+function getCategoryValue(item: ApiRecord): string {
+  const category = item.category;
+
+  if (typeof category === "string" || typeof category === "number") {
+    return String(category);
+  }
+
+  const categoryRecord = asRecord(category);
+
+  return toString(
+    categoryRecord.slug ??
+      categoryRecord.id ??
+      categoryRecord.name ??
+      categoryRecord.nameBn,
+    "other"
+  );
+}
+
 function getEmoji(item: ApiRecord): string {
-  const image = toString(item.image ?? item.emoji ?? item.icon);
+  const image = toString(
+    item.emoji ?? item.icon ?? item.image ?? item.imageUrl
+  );
 
   if (image && !/^https?:\/\//i.test(image)) {
     return image;
   }
 
+  const category = getCategoryValue(item).toLowerCase();
+
   const emojis: Record<string, string> = {
     chal: "🍚",
+    rice: "🍚",
     dal: "🫘",
+    lentil: "🫘",
     tel: "🫒",
+    oil: "🫒",
     sobji: "🥬",
+    shobji: "🥬",
+    vegetables: "🥬",
+    vegetable: "🥬",
     mach: "🐟",
+    fish: "🐟",
     mangsho: "🍗",
-    "dim-dui": "🥚",
+    meat: "🍗",
+    dim: "🥚",
+    egg: "🥚",
     mosla: "🌶️",
+    spice: "🌶️",
   };
 
-  return emojis[toString(item.category).toLowerCase()] ?? "🛒";
+  return emojis[category] ?? "🛒";
+}
+
+function getPrice(item: ApiRecord): number {
+  const priceValue =
+    item.today ??
+    item.price ??
+    item.currentPrice ??
+    item.averagePrice ??
+    item.average ??
+    item.minPrice;
+
+  if (typeof priceValue === "object" && priceValue !== null) {
+    const priceRecord = asRecord(priceValue);
+
+    return toNumber(
+      priceRecord.average ??
+        priceRecord.today ??
+        priceRecord.price ??
+        priceRecord.min
+    );
+  }
+
+  return toNumber(priceValue);
 }
 
 export function normalizeProduct(value: unknown): Product {
   const item = asRecord(value);
 
   const id = toString(
-    item.id ?? item._id ?? item.slug,
+    item.id ?? item._id ?? item.productId ?? item.slug,
     "unknown"
   );
 
   const name = toString(
-    item.nameBn ?? item.name ?? item.title,
+    item.nameBn ??
+      item.name_bn ??
+      item.name ??
+      item.title ??
+      item.productName,
     "নাম পাওয়া যায়নি"
   );
 
-  const slug = toString(item.slug, id);
-  const category = toString(item.category, "other");
+  const slug = toString(item.slug ?? item.id ?? id, id);
+  const category = getCategoryValue(item);
+
+  const categoryRecord = asRecord(item.category);
 
   const categoryName = toString(
-    item.categoryNameBn ?? item.categoryName,
+    item.categoryNameBn ??
+      item.categoryName ??
+      item.category_bn ??
+      categoryRecord.nameBn ??
+      categoryRecord.name ??
+      category,
     category
   );
 
-  const price = toNumber(item.today ?? item.price);
+  const price = getPrice(item);
 
   const changeData = asRecord(item.change);
 
-  const direction = toString(changeData.dir).toLowerCase();
+  const direction = toString(
+    changeData.dir ?? item.changeDirection
+  ).toLowerCase();
 
   const changePercent = toNumber(
     changeData.pct ??
       item.changePercent ??
+      item.priceChange ??
       (typeof item.change === "number" ? item.change : 0)
   );
 
@@ -149,18 +216,31 @@ export function normalizeProduct(value: unknown): Product {
         ? Math.abs(changePercent)
         : changePercent;
 
-  const markets: MarketPrice[] = Array.isArray(item.markets)
-    ? item.markets.map((value) => {
+  const rawMarkets =
+    item.markets ?? item.marketPrices ?? item.market_prices;
+
+  const markets: MarketPrice[] = Array.isArray(rawMarkets)
+    ? rawMarkets.map((value) => {
         const market = asRecord(value);
+
+        const min = toNumber(
+          market.min ?? market.minPrice ?? market.priceMin,
+          price
+        );
+
+        const max = toNumber(
+          market.max ?? market.maxPrice ?? market.priceMax,
+          price
+        );
 
         return {
           market: toString(
-            market.market ?? market.name,
+            market.market ?? market.name ?? market.marketName,
             "স্থানীয় বাজার"
           ),
-          division: toString(market.division),
-          min: toNumber(market.min, price),
-          max: toNumber(market.max, price),
+          division: toString(market.division ?? market.region),
+          min,
+          max,
         };
       })
     : [];
@@ -168,12 +248,12 @@ export function normalizeProduct(value: unknown): Product {
   const minPrice =
     markets.length > 0
       ? Math.min(...markets.map((market) => market.min))
-      : price;
+      : toNumber(item.minPrice ?? item.min, price);
 
   const maxPrice =
     markets.length > 0
       ? Math.max(...markets.map((market) => market.max))
-      : price;
+      : toNumber(item.maxPrice ?? item.max, price);
 
   return {
     id,
@@ -184,11 +264,14 @@ export function normalizeProduct(value: unknown): Product {
     price,
     minPrice,
     maxPrice,
-    averagePrice: price,
-    unit: toString(item.unit, "কেজি"),
+    averagePrice: toNumber(item.averagePrice, price),
+    unit: toString(item.unit ?? item.unitBn, "কেজি"),
     change,
     emoji: getEmoji(item),
-    description: `${name} - আজকের বাজারদর`,
+    description: toString(
+      item.description ?? item.descriptionBn,
+      `${name} - আজকের বাজারদর`
+    ),
     markets,
   };
 }
@@ -202,9 +285,7 @@ async function safeJson(url: string): Promise<unknown> {
   });
 
   if (!response.ok) {
-    throw new Error(
-      `API request failed: ${response.status} ${url}`
-    );
+    throw new Error(`API request failed: ${response.status} ${url}`);
   }
 
   return response.json();
@@ -224,16 +305,18 @@ function unwrapList(data: unknown): unknown[] {
     "items",
     "results",
   ]) {
-    if (Array.isArray(record[key])) {
-      return record[key] as unknown[];
+    const value = record[key];
+
+    if (Array.isArray(value)) {
+      return value;
     }
-  }
 
-  const nestedData = asRecord(record.data);
+    if (value && typeof value === "object") {
+      const nested = unwrapList(value);
 
-  for (const key of ["products", "categories", "items"]) {
-    if (Array.isArray(nestedData[key])) {
-      return nestedData[key] as unknown[];
+      if (nested.length > 0) {
+        return nested;
+      }
     }
   }
 
@@ -243,7 +326,6 @@ function unwrapList(data: unknown): unknown[] {
 export async function getProducts(): Promise<Product[]> {
   try {
     const data = await safeJson(`${API_BASE}/products`);
-
     return unwrapList(data).map(normalizeProduct);
   } catch (error) {
     console.error("Failed to load products from API:", error);
@@ -258,8 +340,7 @@ export async function getProductBySlug(
 
   return (
     products.find(
-      (product) =>
-        product.slug === slug || product.id === slug
+      (product) => product.slug === slug || product.id === slug
     ) ?? null
   );
 }
@@ -270,17 +351,31 @@ export async function getCategories(): Promise<Category[]> {
 
     return unwrapList(data).map((value) => {
       const item = asRecord(value);
+      const categoryRecord = asRecord(item.category);
+
+      const id = toString(
+        item.id ?? item._id ?? item.slug ?? item.name
+      );
+
+      const name = toString(
+        item.nameBn ??
+          item.categoryNameBn ??
+          item.name_bn ??
+          item.name ??
+          item.title ??
+          categoryRecord.nameBn ??
+          categoryRecord.name,
+        "অন্যান্য"
+      );
+
+      const slug = toString(
+        item.slug ?? item.categorySlug ?? item.id ?? id
+      );
 
       return {
-        id: toString(item.id ?? item.slug ?? item.name),
-        name: toString(
-          item.nameBn ??
-            item.categoryNameBn ??
-            item.name ??
-            item.title,
-          "অন্যান্য"
-        ),
-        slug: toString(item.slug ?? item.id),
+        id,
+        name,
+        slug,
         icon: toString(item.icon ?? item.emoji),
         aliases: Array.isArray(item.aliases)
           ? item.aliases.filter(
@@ -300,14 +395,17 @@ export async function getCategory(
   slug: string
 ): Promise<Category | null> {
   const categories = await getCategories();
+  const normalizedSlug = slug.toLowerCase();
 
   return (
     categories.find(
       (category) =>
-        category.slug === slug ||
-        category.id === slug ||
-        category.name === slug ||
-        category.aliases?.includes(slug)
+        category.slug.toLowerCase() === normalizedSlug ||
+        category.id.toLowerCase() === normalizedSlug ||
+        category.name.toLowerCase() === normalizedSlug ||
+        category.aliases?.some(
+          (alias) => alias.toLowerCase() === normalizedSlug
+        )
     ) ?? null
   );
 }
@@ -316,11 +414,12 @@ export async function getProductsByCategory(
   slug: string
 ): Promise<Product[]> {
   const products = await getProducts();
+  const normalizedSlug = slug.toLowerCase();
 
   return products.filter(
     (product) =>
-      product.category.toLowerCase() === slug.toLowerCase() ||
-      product.categoryName.toLowerCase() === slug.toLowerCase() ||
-      product.slug === slug
+      product.category.toLowerCase() === normalizedSlug ||
+      product.categoryName.toLowerCase() === normalizedSlug ||
+      product.slug.toLowerCase() === normalizedSlug
   );
 }
